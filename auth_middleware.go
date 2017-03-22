@@ -11,9 +11,9 @@ import (
 
 type middleware func(http.Handler) http.Handler
 
-var RequestIdCache = cache.New(cache.NoExpiration, 0)
+var requestIdCache = cache.New(cache.NoExpiration, 0)
 
-func BuildContext(context string) logrus.Fields {
+func buildContext(context string) logrus.Fields {
 	return logrus.Fields{
 		"context": context,
 	}
@@ -24,26 +24,26 @@ func WithClientIdAndPassKeyAuthorization(clientRepository ClientRepositoryInterf
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			requestID := uuid.NewV4().String()
 			context.Set(r, "requestID", requestID)
-			logFields := BuildContext("authMiddleware")
-			requestClientId := r.Header.Get("Client-ID")
+			logFields := buildContext("authMiddleware")
+			requestClientID := r.Header.Get("Client-ID")
 			requestPassKey := r.Header.Get("Pass-Key")
-			cachedPassKey, _ := RequestIdCache.Get(requestClientId)
+			cachedPassKey, _ := requestIdCache.Get(requestClientID)
 
-			if requestClientId == "" || requestPassKey == "" {
-				logrus.WithFields(logFields).Error("Either of client-id or paskey is missing, client-id: "+requestClientId, " pass-key: ", requestPassKey)
+			if requestClientID == "" || requestPassKey == "" {
+				logrus.WithFields(logFields).Error("Either of client-id or paskey is missing, client-id: "+requestClientID, " pass-key: ", requestPassKey)
 				w.WriteHeader(http.StatusUnauthorized)
 				return
 			}
 
 			if cachedPassKey == "" {
-				authorized_application, dbError := clientRepository.GetClient(requestClientId)
+				authorizedApplication, dbError := clientRepository.GetClient(requestClientID)
 				if dbError != nil {
 					logrus.WithFields(logFields).Error("Error fetching client ID from DB" + dbError.Error())
 					w.WriteHeader(http.StatusUnauthorized)
 					return
 				}
-				RequestIdCache.Set(authorized_application.ClientId, authorized_application.PassKey, cache.NoExpiration)
-				cachedPassKey = authorized_application.PassKey
+				requestIdCache.Set(authorizedApplication.ClientId, authorizedApplication.PassKey, cache.NoExpiration)
+				cachedPassKey = authorizedApplication.PassKey
 			}
 
 			if cachedPassKey != requestPassKey {
