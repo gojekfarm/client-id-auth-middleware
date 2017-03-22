@@ -37,23 +37,23 @@ func initDB() *sqlx.DB {
 	return db
 }
 
-func TestCreatesAndFindsAAuthorisedApplication(t *testing.T) {
+func TestCreatesAndFindsAAuthorizedApplication(t *testing.T) {
 	db := initDB()
 	db.Exec("INSERT INTO authorized_applications (client_id, pass_key) VALUES ('DUMMY-CLIENT-ID', 'DUMMY-PASSKEY')")
 
-	authorisedApplication := Client{
+	authorizedApplication := Client{
 		ClientId: "DUMMY-CLIENT-ID",
 		PassKey:  "DUMMY-PASSKEY",
 	}
 
 	repository := &ClientRepository{DB: db}
-	found, error := repository.GetClient(authorisedApplication.ClientId)
+	found, error := repository.GetClient(authorizedApplication.ClientId)
 
 	assert.Equal(t, error, nil)
 
-	assert.Equal(t, authorisedApplication.ClientId, found.ClientId)
+	assert.Equal(t, authorizedApplication.ClientId, found.ClientId)
 
-	assert.Equal(t, authorisedApplication.PassKey, found.PassKey)
+	assert.Equal(t, authorizedApplication.PassKey, found.PassKey)
 
-	db.Exec("DELETE FROM authorised_applications WHERE client_id = 'DUMMY-CLIENT-ID' ")
+	db.Exec("DELETE FROM authorized_applications WHERE client_id = 'DUMMY-CLIENT-ID' ")
 }

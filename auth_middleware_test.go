@@ -81,7 +81,7 @@ func TestWithClientIdAndPassKeyAuthorizationReturnUnauthorizedIfPassKeyIsMissing
 func TestWithClientIdAndPassKeyAuthorizationReturnUnauthorizedIsWrongClientIdAndPassKeyIsSent(t *testing.T) {
 	setUp()
 	db := initDB()
-	db.Exec("INSERT INTO authorised_applications (client_id, pass_key) VALUES ('DUMMY-CLIENT-ID', 'DUMMY-PASSKEY')")
+	db.Exec("INSERT INTO authorized_applications (client_id, pass_key) VALUES ('DUMMY-CLIENT-ID', 'DUMMY-PASSKEY')")
 
 	clientRepository := &MockClientRepository{}
 	ts := httptest.NewServer(clientIdAuth.WithClientIdAndPassKeyAuthorization(clientRepository)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})))
@@ -97,7 +97,7 @@ func TestWithClientIdAndPassKeyAuthorizationReturnUnauthorizedIsWrongClientIdAnd
 	response, _ := client.Do(req)
 
 	assert.Equal(t, http.StatusUnauthorized, response.StatusCode)
-	db.Exec("DELETE FROM authorised_applications WHERE client_id = 'DUMMY-CLIENT-ID' ")
+	db.Exec("DELETE FROM authorized_applications WHERE client_id = 'DUMMY-CLIENT-ID' ")
 }
 
 func TestWithClientIdAndPassKeyAuthorizationReturnUnAuthorizedIfClientIdIsNotPresentInDB(t *testing.T) {

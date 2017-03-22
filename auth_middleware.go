@@ -36,14 +36,14 @@ func WithClientIdAndPassKeyAuthorization(clientRepository ClientRepositoryInterf
 			}
 
 			if cachedPassKey == "" {
-				authorised_application, dbError := clientRepository.GetClient(requestClientId)
+				authorized_application, dbError := clientRepository.GetClient(requestClientId)
 				if dbError != nil {
 					logrus.WithFields(logFields).Error("Error fetching client ID from DB" + dbError.Error())
 					w.WriteHeader(http.StatusUnauthorized)
 					return
 				}
-				RequestIdCache.Set(authorised_application.ClientId, authorised_application.PassKey, cache.NoExpiration)
-				cachedPassKey = authorised_application.PassKey
+				RequestIdCache.Set(authorized_application.ClientId, authorized_application.PassKey, cache.NoExpiration)
+				cachedPassKey = authorized_application.PassKey
 			}
 
 			if cachedPassKey != requestPassKey {
