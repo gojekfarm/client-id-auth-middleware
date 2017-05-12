@@ -25,29 +25,36 @@ func WithClientIDAndPassKeyAuthorization(clientRepo clientStore) middleware {
 			requestID := uuid.NewV4().String()
 			context.Set(r, "requestID", requestID)
 
-			logFields := buildContext("authMiddleware")
+			logger := logrus.WithFields(buildContext("authMiddleware"))
+
 			requestClientID := r.Header.Get("Client-ID")
 			requestPassKey := r.Header.Get("Pass-Key")
-			cachedPassKey, _ := requestIDCache.Get(requestClientID)
 
 			if requestClientID == "" || requestPassKey == "" {
-				logrus.WithFields(logFields).Error("Either of client-id or paskey is missing, client-id: "+requestClientID, " pass-key: ", requestPassKey)
+				logger.Errorf("either of Client-ID or Pass-Key is missing, Client-Id: %s Pass-Key: %s", requestClientID, requestPassKey)
+
 				w.WriteHeader(http.StatusUnauthorized)
 				return
 			}
 
-			if cachedPassKey == "" {
-				authorizedApplication, dbError := clientRepo.GetClient(requestClientID)
-				if dbError != nil {
-					logrus.WithFields(logFields).Error("Error fetching client ID from DB" + dbError.Error())
+			cachedPassKey, found := requestIDCache.Get(requestClientID)
+			if !found {
+
+				authorizedApplication, err := clientRepo.GetClient(requestClientID)
+				if err != nil {
+					logger.Errorf("error fetching client ID from DB %s", err)
+
 					w.WriteHeader(http.StatusUnauthorized)
 					return
 				}
+
 				requestIDCache.Set(authorizedApplication.ClientID, authorizedApplication.PassKey, cache.NoExpiration)
 				cachedPassKey = authorizedApplication.PassKey
 			}
 
 			if cachedPassKey != requestPassKey {
+				logger.Error("error: Pass-Key is invalid")
+
 				w.WriteHeader(http.StatusUnauthorized)
 				return
 			}
