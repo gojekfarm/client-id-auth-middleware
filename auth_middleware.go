@@ -1,4 +1,4 @@
-package clientIdAuth
+package clientauth
 
 import (
 	"net/http"

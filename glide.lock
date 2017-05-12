@@ -1,5 +1,5 @@
-hash: bab29cebff9ba9e1b76464af8ee7699f6ece976cde8179e38b1a97f5fdc3a425
-updated: 2017-03-22T15:35:16.97365539+05:30
+hash: 0edfc5b9a8b1c350773eea7d4e55015779917a23d516b87c80b181aa7403dce2
+updated: 2017-05-12T14:38:41.161037438+05:30
 imports:
 - name: github.com/gorilla/context
   version: 1ea25387ff6f684839d82767c1733ff4d4d15d0a
@@ -48,7 +48,7 @@ testImports:
 - name: github.com/mitchellh/mapstructure
   version: ca63d7c062ee3c9f34db231e352b60012b4fd0c1
 - name: github.com/newrelic/go-agent
-  version: 60ed7aa03a85a1355b4189f66e23604de8f27d57
+  version: 29ec3cd1bb2f21d21d36da37dae52695cb2c3a17
   subpackages:
   - internal
   - internal/jsonx

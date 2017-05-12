@@ -1,11 +1,9 @@
-package clientIdAuth
+package clientauth
 
 import (
-	"fmt"
 	"os"
 	"testing"
 
-	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 
 	log "github.com/Sirupsen/logrus"
@@ -21,20 +19,6 @@ func init() {
 	log.SetOutput(os.Stdout)
 	conf := TestConfig{}
 	conf.Load()
-}
-
-func initDB() *sqlx.DB {
-
-	dbConf := goconfig.LoadDbConf()
-	db, err := sqlx.Connect(dbConf.Driver(), dbConf.Url())
-	if err != nil {
-		log.Panic(fmt.Errorf("Unable to connect to the DB: %v", err))
-	}
-
-	db.SetMaxOpenConns(dbConf.MaxConn())
-	db.SetMaxIdleConns(dbConf.IdleConn())
-	db.SetConnMaxLifetime(dbConf.ConnMaxLifetime())
-	return db
 }
 
 func TestCreatesAndFindsAAuthorizedApplication(t *testing.T) {

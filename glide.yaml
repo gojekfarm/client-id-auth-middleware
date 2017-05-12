@@ -1,4 +1,4 @@
-package: client-id-auth-middleware
+package: github.com/gojek-engineering/client-id-auth-middleware
 import:
 - package: github.com/jmoiron/sqlx
 - package: github.com/lib/pq
@@ -7,6 +7,8 @@ import:
 - package: github.com/patrickmn/go-cache
   version: ^2.0.0
 - package: github.com/irfn/goconfig
+- package: github.com/gorilla/context
+  version: ^1.1.0
 testImport:
 - package: github.com/stretchr/testify
   version: ^1.1.4
