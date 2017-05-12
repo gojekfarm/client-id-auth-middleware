@@ -14,26 +14,22 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func setUp() {
-}
-
 type MockClientRepositoryErrors struct{}
+
+func (m *MockClientRepositoryErrors) GetClient(clientID string) (*client, error) {
+	return nil, errors.New("no row in db for this client id")
+}
 
 type MockClientRepository struct{}
 
-func (m *MockClientRepository) GetClient(clientID string) (*Client, error) {
-	return &Client{
+func (m *MockClientRepository) GetClient(clientID string) (*client, error) {
+	return &client{
 		ClientID: "ClientID",
 		PassKey:  "Pass-Key",
 	}, nil
 }
 
-func (m *MockClientRepositoryErrors) GetClient(clientID string) (*Client, error) {
-	return nil, errors.New("no row in db for this client id")
-}
-
 func initDB() *sqlx.DB {
-
 	dbConf := goconfig.LoadDbConf()
 	db, err := sqlx.Connect(dbConf.Driver(), dbConf.Url())
 	if err != nil {
