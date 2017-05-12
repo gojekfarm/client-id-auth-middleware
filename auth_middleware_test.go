@@ -21,14 +21,14 @@ type MockClientRepositoryErrors struct{}
 
 type MockClientRepository struct{}
 
-func (m *MockClientRepository) GetClient(clientId string) (*Client, error) {
+func (m *MockClientRepository) GetClient(clientID string) (*Client, error) {
 	return &Client{
-		ClientId: "ClientID",
+		ClientID: "ClientID",
 		PassKey:  "Pass-Key",
 	}, nil
 }
 
-func (m *MockClientRepositoryErrors) GetClient(clientId string) (*Client, error) {
+func (m *MockClientRepositoryErrors) GetClient(clientID string) (*Client, error) {
 	return nil, errors.New("no row in db for this client id")
 }
 
@@ -46,11 +46,11 @@ func initDB() *sqlx.DB {
 	return db
 }
 
-func TestWithClientIdAndPassKeyAuthorizationReturnUnauthorizedIfClientIdIsMissing(t *testing.T) {
+func TestWithClientIDAndPassKeyAuthorizationReturnUnauthorizedIfClientIDIsMissing(t *testing.T) {
 	setUp()
 	clientRepository := &MockClientRepository{}
 
-	ts := httptest.NewServer(WithClientIdAndPassKeyAuthorization(clientRepository)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	ts := httptest.NewServer(WithClientIDAndPassKeyAuthorization(clientRepository)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 	})))
 	defer ts.Close()
 
@@ -62,10 +62,10 @@ func TestWithClientIdAndPassKeyAuthorizationReturnUnauthorizedIfClientIdIsMissin
 	assert.Equal(t, http.StatusUnauthorized, response.StatusCode)
 }
 
-func TestWithClientIdAndPassKeyAuthorizationReturnUnauthorizedIfPassKeyIsMissing(t *testing.T) {
+func TestWithClientIDAndPassKeyAuthorizationReturnUnauthorizedIfPassKeyIsMissing(t *testing.T) {
 	setUp()
 	clientRepository := &MockClientRepository{}
-	ts := httptest.NewServer(WithClientIdAndPassKeyAuthorization(clientRepository)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	ts := httptest.NewServer(WithClientIDAndPassKeyAuthorization(clientRepository)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 	})))
 	defer ts.Close()
 
@@ -77,13 +77,13 @@ func TestWithClientIdAndPassKeyAuthorizationReturnUnauthorizedIfPassKeyIsMissing
 	assert.Equal(t, http.StatusUnauthorized, response.StatusCode)
 }
 
-func TestWithClientIdAndPassKeyAuthorizationReturnUnauthorizedIsWrongClientIdAndPassKeyIsSent(t *testing.T) {
+func TestWithClientIDAndPassKeyAuthorizationReturnUnauthorizedIsWrongClientIDAndPassKeyIsSent(t *testing.T) {
 	setUp()
 	db := initDB()
 	db.Exec("INSERT INTO authorized_applications (client_id, pass_key) VALUES ('DUMMY-CLIENT-ID', 'DUMMY-PASSKEY')")
 
 	clientRepository := &MockClientRepository{}
-	ts := httptest.NewServer(WithClientIdAndPassKeyAuthorization(clientRepository)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})))
+	ts := httptest.NewServer(WithClientIDAndPassKeyAuthorization(clientRepository)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})))
 
 	defer ts.Close()
 
@@ -99,10 +99,10 @@ func TestWithClientIdAndPassKeyAuthorizationReturnUnauthorizedIsWrongClientIdAnd
 	db.Exec("DELETE FROM authorized_applications WHERE client_id = 'DUMMY-CLIENT-ID' ")
 }
 
-func TestWithClientIdAndPassKeyAuthorizationReturnUnAuthorizedIfClientIdIsNotPresentInDB(t *testing.T) {
+func TestWithClientIDAndPassKeyAuthorizationReturnUnAuthorizedIfClientIDIsNotPresentInDB(t *testing.T) {
 	setUp()
 	clientRepository := &MockClientRepositoryErrors{}
-	ts := httptest.NewServer(WithClientIdAndPassKeyAuthorization(clientRepository)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})))
+	ts := httptest.NewServer(WithClientIDAndPassKeyAuthorization(clientRepository)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})))
 
 	defer ts.Close()
 

@@ -26,16 +26,16 @@ func TestCreatesAndFindsAAuthorizedApplication(t *testing.T) {
 	db.Exec("INSERT INTO authorized_applications (client_id, pass_key) VALUES ('DUMMY-CLIENT-ID', 'DUMMY-PASSKEY')")
 
 	authorizedApplication := Client{
-		ClientId: "DUMMY-CLIENT-ID",
+		ClientID: "DUMMY-CLIENT-ID",
 		PassKey:  "DUMMY-PASSKEY",
 	}
 
 	repository := &ClientRepository{DB: db}
-	found, error := repository.GetClient(authorizedApplication.ClientId)
+	found, error := repository.GetClient(authorizedApplication.ClientID)
 
 	assert.Equal(t, error, nil)
 
-	assert.Equal(t, authorizedApplication.ClientId, found.ClientId)
+	assert.Equal(t, authorizedApplication.ClientID, found.ClientID)
 
 	assert.Equal(t, authorizedApplication.PassKey, found.PassKey)
 
