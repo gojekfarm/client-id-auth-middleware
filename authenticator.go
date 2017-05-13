@@ -26,7 +26,7 @@ func NewClientAuthentication(authConfig *Config) *ClientAuthentication {
 }
 
 func (ca *ClientAuthentication) Authenticate(clientID, passKey string) error {
-	if clientID == "" || passKey == "" {
+	if len(clientID) <= 0 || len(passKey) <= 0 {
 		return fmt.Errorf("either of Client-ID or Pass-Key is missing, Client-Id: %s", clientID)
 	}
 

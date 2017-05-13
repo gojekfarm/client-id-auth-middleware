@@ -26,7 +26,7 @@ func TestAuthorizationWhenClientIDMissing(t *testing.T) {
 
 	w := httptest.NewRecorder()
 
-	mockClientAuthenticator := &MockClientAuthenticator{}
+	mockClientAuthenticator := &mockClientAuthenticator{}
 	mockClientAuthenticator.On("Authenticate", "", "some key").Return(errors.New("failed to authorize client"))
 
 	WithClientIDAndPassKeyAuthorization(mockClientAuthenticator)(nextHandler{}).ServeHTTP(w, r)
@@ -45,7 +45,7 @@ func TestAuthorizationWhenPassKeyMissing(t *testing.T) {
 
 	w := httptest.NewRecorder()
 
-	mockClientAuthenticator := &MockClientAuthenticator{}
+	mockClientAuthenticator := &mockClientAuthenticator{}
 	mockClientAuthenticator.On("Authenticate", "some_client_id", "").Return(errors.New("failed to authorize client"))
 
 	WithClientIDAndPassKeyAuthorization(mockClientAuthenticator)(nextHandler{}).ServeHTTP(w, r)
@@ -65,7 +65,7 @@ func TestAuthorizationFailWithInvalidCreds(t *testing.T) {
 
 	w := httptest.NewRecorder()
 
-	mockClientAuthenticator := &MockClientAuthenticator{}
+	mockClientAuthenticator := &mockClientAuthenticator{}
 	mockClientAuthenticator.On("Authenticate", "some_client_id", "some_pass_key").Return(errors.New("failed to authorize client"))
 
 	WithClientIDAndPassKeyAuthorization(mockClientAuthenticator)(nextHandler{}).ServeHTTP(w, r)
@@ -85,7 +85,7 @@ func TestAuthorizationSucceed(t *testing.T) {
 
 	w := httptest.NewRecorder()
 
-	mockClientAuthenticator := &MockClientAuthenticator{}
+	mockClientAuthenticator := &mockClientAuthenticator{}
 	mockClientAuthenticator.On("Authenticate", "some_client_id", "some_pass_key").Return(nil)
 
 	WithClientIDAndPassKeyAuthorization(mockClientAuthenticator)(nextHandler{}).ServeHTTP(w, r)
