@@ -30,3 +30,21 @@ func TestCreatesAndFindsAnAuthorizedApplication(t *testing.T) {
 
 	db.Exec("DELETE FROM authorized_applications WHERE client_id = 'DUMMY-CLIENT-ID' ")
 }
+
+func TestGetClientFailsWhenNoRecords(t *testing.T) {
+	dbDriver := "postgres"
+	dbConnURL := "dbname=client_auth user=postgres host=localhost sslmode=disable"
+
+	db := loadDatabase(dbDriver, dbConnURL)
+
+	authorizedApplication := client{
+		ClientID: "DUMMY-CLIENT-ID",
+		PassKey:  "DUMMY-PASSKEY",
+	}
+
+	repository := &clientRepository{db: db}
+	found, err := repository.getClient(authorizedApplication.ClientID)
+	require.Error(t, err, "should have failed to get client from db")
+
+	assert.Nil(t, found)
+}
