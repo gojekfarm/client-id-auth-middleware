@@ -27,7 +27,7 @@ func WithClientIDAndPassKeyAuthorization(authenticator clientAuthenticator) midd
 			requestClientID := r.Header.Get("Client-ID")
 			requestPassKey := r.Header.Get("Pass-Key")
 
-			err := authenticator.authenticate(requestClientID, requestPassKey)
+			err := authenticator.Authenticate(requestClientID, requestPassKey)
 			if err != nil {
 				logger.Errorf("failed to authenticate client for ID : %s", requestClientID)
 

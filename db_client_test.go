@@ -1,28 +1,19 @@
 package clientauth
 
 import (
-	"os"
 	"testing"
 
 	_ "github.com/lib/pq"
 
-	log "github.com/Sirupsen/logrus"
-	"github.com/irfn/goconfig"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
-type TestConfig struct {
-	goconfig.BaseConfig
-}
+func TestCreatesAndFindsAnAuthorizedApplication(t *testing.T) {
+	dbDriver := "postgres"
+	dbConnURL := "dbname=client_auth user=postgres host=localhost sslmode=disable"
 
-func init() {
-	log.SetOutput(os.Stdout)
-	conf := TestConfig{}
-	conf.Load()
-}
-
-func TestCreatesAndFindsAAuthorizedApplication(t *testing.T) {
-	db := initDB()
+	db := loadDatabase(dbDriver, dbConnURL)
 	db.Exec("INSERT INTO authorized_applications (client_id, pass_key) VALUES ('DUMMY-CLIENT-ID', 'DUMMY-PASSKEY')")
 
 	authorizedApplication := client{
@@ -30,13 +21,11 @@ func TestCreatesAndFindsAAuthorizedApplication(t *testing.T) {
 		PassKey:  "DUMMY-PASSKEY",
 	}
 
-	repository := &clientRepository{DB: db}
-	found, error := repository.GetClient(authorizedApplication.ClientID)
-
-	assert.Equal(t, error, nil)
+	repository := &clientRepository{db: db}
+	found, err := repository.getClient(authorizedApplication.ClientID)
+	require.NoError(t, err, "should not have failed to get client from db")
 
 	assert.Equal(t, authorizedApplication.ClientID, found.ClientID)
-
 	assert.Equal(t, authorizedApplication.PassKey, found.PassKey)
 
 	db.Exec("DELETE FROM authorized_applications WHERE client_id = 'DUMMY-CLIENT-ID' ")

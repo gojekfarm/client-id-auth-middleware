@@ -2,113 +2,95 @@ package clientauth
 
 import (
 	"errors"
-	"fmt"
-	"log"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
-	"github.com/irfn/goconfig"
-
-	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
-type MockClientRepositoryErrors struct{}
+var called bool
 
-func (m *MockClientRepositoryErrors) GetClient(clientID string) (*client, error) {
-	return nil, errors.New("no row in db for this client id")
+type nextHandler struct{}
+
+func (nh nextHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	called = true
 }
 
-type MockClientRepository struct{}
+func TestAuthorizationWhenClientIDMissing(t *testing.T) {
+	r, err := http.NewRequest("GET", "/authenticate", nil)
+	require.NoError(t, err, "should not have failed to create a request")
 
-func (m *MockClientRepository) GetClient(clientID string) (*client, error) {
-	return &client{
-		ClientID: "ClientID",
-		PassKey:  "Pass-Key",
-	}, nil
+	r.Header.Add("Pass-Key", "some key")
+
+	w := httptest.NewRecorder()
+
+	mockClientAuthenticator := &MockClientAuthenticator{}
+	mockClientAuthenticator.On("Authenticate", "", "some key").Return(errors.New("failed to authorize client"))
+
+	WithClientIDAndPassKeyAuthorization(mockClientAuthenticator)(nextHandler{}).ServeHTTP(w, r)
+
+	assert.Equal(t, http.StatusUnauthorized, w.Code)
+	assert.False(t, called)
+
+	mockClientAuthenticator.AssertExpectations(t)
 }
 
-func initDB() *sqlx.DB {
-	dbConf := goconfig.LoadDbConf()
-	db, err := sqlx.Connect(dbConf.Driver(), dbConf.Url())
-	if err != nil {
-		log.Panic(fmt.Errorf("Unable to connect to the DB: %v", err))
-	}
+func TestAuthorizationWhenPassKeyMissing(t *testing.T) {
+	r, err := http.NewRequest("GET", "/authenticate", nil)
+	require.NoError(t, err, "should not have failed to create a request")
 
-	db.SetMaxOpenConns(dbConf.MaxConn())
-	db.SetMaxIdleConns(dbConf.IdleConn())
-	db.SetConnMaxLifetime(dbConf.ConnMaxLifetime())
-	return db
+	r.Header.Add("Client-ID", "some_client_id")
+
+	w := httptest.NewRecorder()
+
+	mockClientAuthenticator := &MockClientAuthenticator{}
+	mockClientAuthenticator.On("Authenticate", "some_client_id", "").Return(errors.New("failed to authorize client"))
+
+	WithClientIDAndPassKeyAuthorization(mockClientAuthenticator)(nextHandler{}).ServeHTTP(w, r)
+
+	assert.Equal(t, http.StatusUnauthorized, w.Code)
+	assert.False(t, called)
+
+	mockClientAuthenticator.AssertExpectations(t)
 }
 
-func TestWithClientIDAndPassKeyAuthorizationReturnUnauthorizedIfClientIDIsMissing(t *testing.T) {
-	setUp()
-	clientRepository := &MockClientRepository{}
+func TestAuthorizationFailWithInvalidCreds(t *testing.T) {
+	r, err := http.NewRequest("GET", "/authenticate", nil)
+	require.NoError(t, err, "should not have failed to create a request")
 
-	ts := httptest.NewServer(WithClientIDAndPassKeyAuthorization(clientRepository)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-	})))
-	defer ts.Close()
+	r.Header.Add("Client-ID", "some_client_id")
+	r.Header.Add("Pass-Key", "some_pass_key")
 
-	req, _ := http.NewRequest("GET", ts.URL, nil)
+	w := httptest.NewRecorder()
 
-	client := &http.Client{}
-	req.Header.Add("Pass-Key", "some key")
-	response, _ := client.Do(req)
-	assert.Equal(t, http.StatusUnauthorized, response.StatusCode)
+	mockClientAuthenticator := &MockClientAuthenticator{}
+	mockClientAuthenticator.On("Authenticate", "some_client_id", "some_pass_key").Return(errors.New("failed to authorize client"))
+
+	WithClientIDAndPassKeyAuthorization(mockClientAuthenticator)(nextHandler{}).ServeHTTP(w, r)
+
+	assert.Equal(t, http.StatusUnauthorized, w.Code)
+	assert.False(t, called)
+
+	mockClientAuthenticator.AssertExpectations(t)
 }
 
-func TestWithClientIDAndPassKeyAuthorizationReturnUnauthorizedIfPassKeyIsMissing(t *testing.T) {
-	setUp()
-	clientRepository := &MockClientRepository{}
-	ts := httptest.NewServer(WithClientIDAndPassKeyAuthorization(clientRepository)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-	})))
-	defer ts.Close()
+func TestAuthorizationSucceed(t *testing.T) {
+	r, err := http.NewRequest("GET", "/authenticate", nil)
+	require.NoError(t, err, "should not have failed to create a request")
 
-	req, _ := http.NewRequest("GET", ts.URL, nil)
+	r.Header.Add("Client-ID", "some_client_id")
+	r.Header.Add("Pass-Key", "some_pass_key")
 
-	client := &http.Client{}
-	req.Header.Add("Client-ID", "some client id")
-	response, _ := client.Do(req)
-	assert.Equal(t, http.StatusUnauthorized, response.StatusCode)
-}
+	w := httptest.NewRecorder()
 
-func TestWithClientIDAndPassKeyAuthorizationReturnUnauthorizedIsWrongClientIDAndPassKeyIsSent(t *testing.T) {
-	setUp()
-	db := initDB()
-	db.Exec("INSERT INTO authorized_applications (client_id, pass_key) VALUES ('DUMMY-CLIENT-ID', 'DUMMY-PASSKEY')")
+	mockClientAuthenticator := &MockClientAuthenticator{}
+	mockClientAuthenticator.On("Authenticate", "some_client_id", "some_pass_key").Return(nil)
 
-	clientRepository := &MockClientRepository{}
-	ts := httptest.NewServer(WithClientIDAndPassKeyAuthorization(clientRepository)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})))
+	WithClientIDAndPassKeyAuthorization(mockClientAuthenticator)(nextHandler{}).ServeHTTP(w, r)
 
-	defer ts.Close()
+	assert.True(t, called)
 
-	req, _ := http.NewRequest("GET", ts.URL, nil)
-
-	client := &http.Client{}
-	req.Header.Add("Client-ID", "DUMMY-CLIENT-ID")
-	req.Header.Add("Pass-Key", "some pass key")
-
-	response, _ := client.Do(req)
-
-	assert.Equal(t, http.StatusUnauthorized, response.StatusCode)
-	db.Exec("DELETE FROM authorized_applications WHERE client_id = 'DUMMY-CLIENT-ID' ")
-}
-
-func TestWithClientIDAndPassKeyAuthorizationReturnUnAuthorizedIfClientIDIsNotPresentInDB(t *testing.T) {
-	setUp()
-	clientRepository := &MockClientRepositoryErrors{}
-	ts := httptest.NewServer(WithClientIDAndPassKeyAuthorization(clientRepository)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})))
-
-	defer ts.Close()
-
-	req, _ := http.NewRequest("GET", ts.URL, nil)
-
-	client := &http.Client{}
-	req.Header.Add("Client-ID", "DUMMY-CLIENT-ID")
-	req.Header.Add("Pass-Key", "some pass key")
-
-	response, _ := client.Do(req)
-
-	assert.Equal(t, http.StatusUnauthorized, response.StatusCode)
+	mockClientAuthenticator.AssertExpectations(t)
 }

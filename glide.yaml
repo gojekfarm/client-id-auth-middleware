@@ -1,4 +1,4 @@
-package: github.com/gojek-engineering/client-id-auth-middleware
+package: client-id-auth-middleware
 import:
 - package: github.com/jmoiron/sqlx
 - package: github.com/lib/pq

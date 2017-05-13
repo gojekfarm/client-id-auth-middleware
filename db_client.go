@@ -15,14 +15,14 @@ type client struct {
 }
 
 type clientStore interface {
-	GetClient(clientID string) (*client, error)
+	getClient(clientID string) (*client, error)
 }
 
 type clientRepository struct {
 	db *sqlx.DB
 }
 
-func (r *clientRepository) GetClient(clientID string) (*client, error) {
+func (r *clientRepository) getClient(clientID string) (*client, error) {
 	query := `
 			SELECT client_id, pass_key
 			FROM authorized_applications

@@ -31,5 +31,14 @@ lint:
 		golint -set_exit_status $$p; \
 	done
 
+db.createdb:
+	createdb -Opostgres -Eutf8 client_auth
+
+db.dropdb:
+	dropdb --if-exists client_auth
+
+db.migrate:
+	migrate -database "postgres://localhost:5432/clientauth" up
+
 test:
 	ENVIRONMENT=test go test -race $(GLIDE_NOVENDOR)
