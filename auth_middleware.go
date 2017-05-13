@@ -16,7 +16,7 @@ func buildContext(context string) logrus.Fields {
 	}
 }
 
-func WithClientIDAndPassKeyAuthorization(authenticator clientAuthenticator) middleware {
+func WithClientIDAndPassKeyAuthorization(authenticator ClientAuthenticator) middleware {
 	return func(h http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			requestID := uuid.NewV4().String()

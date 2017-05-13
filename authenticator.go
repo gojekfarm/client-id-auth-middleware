@@ -7,7 +7,7 @@ import (
 	cache "github.com/patrickmn/go-cache"
 )
 
-type clientAuthenticator interface {
+type ClientAuthenticator interface {
 	Authenticate(clientID, passKey string) error
 }
 
