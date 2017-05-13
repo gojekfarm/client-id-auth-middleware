@@ -6,6 +6,8 @@ GLIDE_NOVENDOR=$(shell glide novendor)
 setup:
 	mkdir -p $(GOPATH)/bin
 	go get -u github.com/golang/lint/golint
+	go get -u -d github.com/mattes/migrate/cli
+	go build -tags 'postgres' -o /usr/local/bin/migrate github.com/mattes/migrate/cli
 
 build-deps:
 	glide install
@@ -31,14 +33,14 @@ lint:
 		golint -set_exit_status $$p; \
 	done
 
-db.createdb:
+db.create:
 	createdb -Opostgres -Eutf8 client_auth
 
-db.dropdb:
+db.drop:
 	dropdb --if-exists client_auth
 
-db.migrate:
-	migrate -database "postgres://localhost:5432/clientauth" up
+db.migrate: db.drop db.create
+	migrate -database "postgres://localhost:5432/client_auth?sslmode=disable" -path ./migrations up
 
-test:
+test: db.migrate
 	ENVIRONMENT=test go test -race $(GLIDE_NOVENDOR)
