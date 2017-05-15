@@ -1,6 +1,0 @@
-db_max_conn: 20
-db_idle_conn: 5
-db_conn_max_lifetime: 1800
-db_driver: postgres
-db_url: user=johndoe password=foobar dbname=clientid_dev host=localhost sslmode=disable port=5432 connect_timeout=5
-db_slave_url: user=johndoe password=foobar dbname=clientid_dev host=localhost sslmode=disable port=5432 connect_timeout=5
