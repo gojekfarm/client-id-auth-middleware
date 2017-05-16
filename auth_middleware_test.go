@@ -134,9 +134,9 @@ func TestAuthorizationMiddlewareForAllCases(t *testing.T) {
 	}
 
 	var called bool
-	nextHandlerFunc := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	nextHandlerFunc := func(w http.ResponseWriter, r *http.Request) {
 		called = true
-	})
+	}
 
 	for _, tc := range testCases {
 		r, w, err := setupRequest(http.MethodGet, "/authenticate", tc.headers)

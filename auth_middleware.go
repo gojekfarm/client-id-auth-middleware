@@ -9,7 +9,7 @@ import (
 )
 
 type Middleware func(http.Handler) http.Handler
-type NextMiddleware func(http.ResponseWriter, *http.Request, http.Handler)
+type NextMiddleware func(http.ResponseWriter, *http.Request, http.HandlerFunc)
 
 func WithClientIDAndPassKeyAuthorization(authenticator ClientAuthenticator) Middleware {
 	return func(h http.Handler) http.Handler {
@@ -37,7 +37,7 @@ func WithClientIDAndPassKeyAuthorization(authenticator ClientAuthenticator) Midd
 }
 
 func NextAuthorizer(authenticator ClientAuthenticator) NextMiddleware {
-	return func(w http.ResponseWriter, r *http.Request, next http.Handler) {
+	return func(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 		err := authenticator.Authenticate(readAuthHeaders(r.Header))
 		if err != nil {
 			w.WriteHeader(http.StatusUnauthorized)
