@@ -1,0 +1,21 @@
+language: go
+go_import_path: client-id-auth-middleware
+
+services:
+  - postgresql
+
+addons:
+  apt:
+    sources:
+      - sourceline: 'ppa:masterminds/glide'
+    packages:
+      - glide
+
+go:
+ - master 
+
+install:
+  - make setup
+
+script:
+   - make
