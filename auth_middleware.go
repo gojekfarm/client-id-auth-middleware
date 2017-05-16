@@ -8,28 +8,24 @@ import (
 	"github.com/satori/go.uuid"
 )
 
-type middleware func(http.Handler) http.Handler
+type Middleware func(http.Handler) http.Handler
+type NextMiddleware func(http.ResponseWriter, *http.Request, http.Handler)
 
-func buildContext(context string) logrus.Fields {
-	return logrus.Fields{
-		"context": context,
-	}
-}
-
-func WithClientIDAndPassKeyAuthorization(authenticator ClientAuthenticator) middleware {
+func WithClientIDAndPassKeyAuthorization(authenticator ClientAuthenticator) Middleware {
 	return func(h http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+			//TODO: Use golang context for setting request specific data
 			requestID := uuid.NewV4().String()
 			context.Set(r, "requestID", requestID)
 
+			//TODO: Take in the logger from client as a config
 			logger := logrus.WithFields(buildContext("authMiddleware"))
 
-			requestClientID := r.Header.Get("Client-ID")
-			requestPassKey := r.Header.Get("Pass-Key")
-
-			err := authenticator.Authenticate(requestClientID, requestPassKey)
+			//TODO: Make clientid and passkey headers as configurable
+			err := authenticator.Authenticate(readAuthHeaders(r.Header))
 			if err != nil {
-				logger.Errorf("failed to authenticate client for ID : %s", requestClientID)
+				logger.Errorf("failed to authenticate client")
 
 				w.WriteHeader(http.StatusUnauthorized)
 				return
@@ -37,5 +33,27 @@ func WithClientIDAndPassKeyAuthorization(authenticator ClientAuthenticator) midd
 
 			h.ServeHTTP(w, r)
 		})
+	}
+}
+
+func NextAuthorizer(authenticator ClientAuthenticator) NextMiddleware {
+	return func(w http.ResponseWriter, r *http.Request, next http.Handler) {
+		err := authenticator.Authenticate(readAuthHeaders(r.Header))
+		if err != nil {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	}
+}
+
+func readAuthHeaders(headers http.Header) (string, string) {
+	return headers.Get("Client-ID"), headers.Get("Pass-Key")
+}
+
+func buildContext(context string) logrus.Fields {
+	return logrus.Fields{
+		"context": context,
 	}
 }
