@@ -12,6 +12,10 @@ func (mca *mockClientAuthenticator) Authenticate(clientID, passKey string) error
 	return args.Error(0)
 }
 
+func (mca *mockClientAuthenticator) HeaderConfig() *HeaderConfig {
+	return mca.Called().Get(0).(*HeaderConfig)
+}
+
 type mockClientRepository struct {
 	mock.Mock
 }

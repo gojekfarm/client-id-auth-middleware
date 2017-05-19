@@ -22,8 +22,7 @@ func WithClientIDAndPassKeyAuthorization(authenticator ClientAuthenticator) Midd
 			//TODO: Take in the logger from client as a config
 			logger := logrus.WithFields(buildContext("authMiddleware"))
 
-			//TODO: Make clientid and passkey headers as configurable
-			err := authenticator.Authenticate(readAuthHeaders(r.Header))
+			err := authenticator.Authenticate(readAuthHeaders(r.Header, authenticator.HeaderConfig()))
 			if err != nil {
 				logger.Errorf("failed to authenticate client")
 
@@ -38,7 +37,7 @@ func WithClientIDAndPassKeyAuthorization(authenticator ClientAuthenticator) Midd
 
 func NextAuthorizer(authenticator ClientAuthenticator) NextMiddleware {
 	return func(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
-		err := authenticator.Authenticate(readAuthHeaders(r.Header))
+		err := authenticator.Authenticate(readAuthHeaders(r.Header, authenticator.HeaderConfig()))
 		if err != nil {
 			w.WriteHeader(http.StatusUnauthorized)
 			return
@@ -48,8 +47,8 @@ func NextAuthorizer(authenticator ClientAuthenticator) NextMiddleware {
 	}
 }
 
-func readAuthHeaders(headers http.Header) (string, string) {
-	return headers.Get("Client-ID"), headers.Get("Pass-Key")
+func readAuthHeaders(headers http.Header, headerConfig *HeaderConfig) (string, string) {
+	return headers.Get(headerConfig.ClientIDName), headers.Get(headerConfig.PassKeyName)
 }
 
 func buildContext(context string) logrus.Fields {

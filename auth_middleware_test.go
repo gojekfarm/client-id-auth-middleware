@@ -26,8 +26,7 @@ func TestAuthorizationWhenClientIDMissing(t *testing.T) {
 
 	w := httptest.NewRecorder()
 
-	mockClientAuthenticator := &mockClientAuthenticator{}
-	mockClientAuthenticator.On("Authenticate", "", "some key").Return(errors.New("failed to authorize client"))
+	mockClientAuthenticator := setupAuthMock("", "some key", errors.New("failed to authorize client"))
 
 	WithClientIDAndPassKeyAuthorization(mockClientAuthenticator)(nextHandler{}).ServeHTTP(w, r)
 
@@ -45,8 +44,7 @@ func TestAuthorizationWhenPassKeyMissing(t *testing.T) {
 
 	w := httptest.NewRecorder()
 
-	mockClientAuthenticator := &mockClientAuthenticator{}
-	mockClientAuthenticator.On("Authenticate", "some_client_id", "").Return(errors.New("failed to authorize client"))
+	mockClientAuthenticator := setupAuthMock("some_client_id", "", errors.New("failed to authorize client"))
 
 	WithClientIDAndPassKeyAuthorization(mockClientAuthenticator)(nextHandler{}).ServeHTTP(w, r)
 
@@ -65,8 +63,7 @@ func TestAuthorizationFailWithInvalidCreds(t *testing.T) {
 
 	w := httptest.NewRecorder()
 
-	mockClientAuthenticator := &mockClientAuthenticator{}
-	mockClientAuthenticator.On("Authenticate", "some_client_id", "some_pass_key").Return(errors.New("failed to authorize client"))
+	mockClientAuthenticator := setupAuthMock("some_client_id", "some_pass_key", errors.New("failed to authorize client"))
 
 	WithClientIDAndPassKeyAuthorization(mockClientAuthenticator)(nextHandler{}).ServeHTTP(w, r)
 
@@ -85,8 +82,7 @@ func TestAuthorizationSucceed(t *testing.T) {
 
 	w := httptest.NewRecorder()
 
-	mockClientAuthenticator := &mockClientAuthenticator{}
-	mockClientAuthenticator.On("Authenticate", "some_client_id", "some_pass_key").Return(nil)
+	mockClientAuthenticator := setupAuthMock("some_client_id", "some_pass_key", nil)
 
 	WithClientIDAndPassKeyAuthorization(mockClientAuthenticator)(nextHandler{}).ServeHTTP(w, r)
 
@@ -170,5 +166,6 @@ func setupRequest(method, url string, headers map[string]string) (*http.Request,
 func setupAuthMock(clientID, passKey string, authErr error) *mockClientAuthenticator {
 	mockClientAuthenticator := &mockClientAuthenticator{}
 	mockClientAuthenticator.On("Authenticate", clientID, passKey).Return(authErr).Once()
+	mockClientAuthenticator.On("HeaderConfig").Return(&HeaderConfig{"Client-ID", "Pass-Key"}).Once()
 	return mockClientAuthenticator
 }

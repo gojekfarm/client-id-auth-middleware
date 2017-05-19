@@ -9,11 +9,13 @@ import (
 
 type ClientAuthenticator interface {
 	Authenticate(clientID, passKey string) error
+	HeaderConfig() *HeaderConfig
 }
 
 type ClientAuthentication struct {
-	cache *cache.Cache
-	db    clientStore
+	cache  *cache.Cache
+	db     clientStore
+	config *Config
 }
 
 func NewClientAuthentication(authConfig *Config) *ClientAuthentication {
@@ -22,7 +24,12 @@ func NewClientAuthentication(authConfig *Config) *ClientAuthentication {
 		db: &clientRepository{
 			db: loadDatabase(authConfig.dbDriver, authConfig.dbConnURL),
 		},
+		config: authConfig,
 	}
+}
+
+func (ca *ClientAuthentication) HeaderConfig() *HeaderConfig {
+	return ca.config.HeaderConfig
 }
 
 func (ca *ClientAuthentication) Authenticate(clientID, passKey string) error {
