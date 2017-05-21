@@ -24,7 +24,7 @@ func WithClientIDAndPassKeyAuthorization(authenticator ClientAuthenticator) Midd
 
 			err := authenticator.Authenticate(readAuthHeaders(r.Header, authenticator.HeaderConfig()))
 			if err != nil {
-				logger.Errorf("failed to authenticate client")
+				logger.Errorf("failed to authenticate client: %s", err)
 
 				w.WriteHeader(http.StatusUnauthorized)
 				return
