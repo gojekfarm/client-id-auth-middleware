@@ -6,6 +6,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	uuid "github.com/satori/go.uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -130,8 +131,11 @@ func TestAuthorizationMiddlewareForAllCases(t *testing.T) {
 	}
 
 	var called bool
+	var nextRequest *http.Request
+
 	nextHandlerFunc := func(w http.ResponseWriter, r *http.Request) {
 		called = true
+		nextRequest = r
 	}
 
 	for _, tc := range testCases {
@@ -144,6 +148,10 @@ func TestAuthorizationMiddlewareForAllCases(t *testing.T) {
 
 		assert.Equal(t, tc.expectedStatus, http.StatusUnauthorized, tc.description)
 		assert.Equal(t, tc.expectedCall, called, tc.description)
+		if tc.expectedCall {
+			_, err := uuid.FromString(nextRequest.Context().Value(RequestID).(string))
+			require.NoError(t, err, "Should Set Proper UUID as RequestID")
+		}
 		tc.authMock.AssertExpectations(t)
 		called = false
 	}

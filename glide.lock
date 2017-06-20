@@ -1,18 +1,16 @@
-hash: f15cb5709cc05b925fb1c63ee4baac8f0fa81a4dea7a1a60125c8373821e015d
-updated: 2017-05-13T13:37:19.795653+05:30
+hash: 4791456e7f95d65ed33fdf86751df6570d5539cdf7af4bb9e83ce96052d96f1c
+updated: 2017-06-20T10:58:37.194419443+05:30
 imports:
 - name: github.com/davecgh/go-spew
-  version: 6d212800a42e8ab5c146b8ace3490ee17e5225f9
+  version: 04cdfd42973bb9c8589fd6a731800cf222fde1a9
   subpackages:
   - spew
-- name: github.com/gorilla/context
-  version: 1ea25387ff6f684839d82767c1733ff4d4d15d0a
 - name: github.com/jmoiron/sqlx
-  version: 05b81a7d5d38058e42148dc01f17daf4acba4640
+  version: d9bd385d68c068f1fabb5057e3dedcbcbb039d0f
   subpackages:
   - reflectx
 - name: github.com/lib/pq
-  version: ae8357db35d721c58dcdc911318b55bef6b1b001
+  version: dc50b6ad2d3ee836442cf3389009c7cd1e64bb43
   subpackages:
   - oid
 - name: github.com/patrickmn/go-cache
@@ -28,13 +26,13 @@ imports:
 - name: github.com/stretchr/objx
   version: cbeaeb16a013161a98496fad62933b1d21786672
 - name: github.com/stretchr/testify
-  version: 69483b4bd14f5845b5a1e55bca19e954e827f1d0
+  version: 4d4bfba8f1d1027c4fdbe371823030df51419987
   subpackages:
   - assert
   - mock
   - require
 - name: golang.org/x/sys
-  version: 30de6d19a3bd89a5f38ae4028e23aaa5582648af
+  version: a646d33e2ee3172a661fc09bca23bb4889a41bc8
   subpackages:
   - unix
 testImports: []

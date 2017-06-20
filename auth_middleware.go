@@ -1,23 +1,23 @@
 package clientauth
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/gorilla/context"
-	"github.com/satori/go.uuid"
+	uuid "github.com/satori/go.uuid"
 )
 
 type Middleware func(http.Handler) http.Handler
 type NextMiddleware func(http.ResponseWriter, *http.Request, http.HandlerFunc)
 
+type requestIDKey string
+
+var RequestID requestIDKey = "Request-ID"
+
 func WithClientIDAndPassKeyAuthorization(authenticator ClientAuthenticator) Middleware {
 	return func(h http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-
-			//TODO: Use golang context for setting request specific data
-			requestID := uuid.NewV4().String()
-			context.Set(r, "requestID", requestID)
 
 			//TODO: Take in the logger from client as a config
 			logger := logrus.WithFields(buildContext("authMiddleware"))
@@ -30,7 +30,7 @@ func WithClientIDAndPassKeyAuthorization(authenticator ClientAuthenticator) Midd
 				return
 			}
 
-			h.ServeHTTP(w, r)
+			h.ServeHTTP(w, r.WithContext(contextWithRequestID(r)))
 		})
 	}
 }
@@ -43,7 +43,7 @@ func NextAuthorizer(authenticator ClientAuthenticator) NextMiddleware {
 			return
 		}
 
-		next.ServeHTTP(w, r)
+		next.ServeHTTP(w, r.WithContext(contextWithRequestID(r)))
 	}
 }
 
@@ -55,4 +55,9 @@ func buildContext(context string) logrus.Fields {
 	return logrus.Fields{
 		"context": context,
 	}
+}
+
+func contextWithRequestID(r *http.Request) context.Context {
+	requestID := uuid.NewV4().String()
+	return context.WithValue(r.Context(), RequestID, requestID)
 }
